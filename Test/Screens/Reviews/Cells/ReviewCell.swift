@@ -2,25 +2,20 @@ import UIKit
 
 /// Конфигурация ячейки. Содержит данные для отображения в ячейке.
 struct ReviewCellConfig {
-    private let ratingRender = RatingRenderer()
 
     /// Идентификатор для переиспользования ячейки.
     static let reuseId = String(describing: ReviewCellConfig.self)
     /// Идентификатор конфигурации. Можно использовать для поиска конфигурации в массиве.
     let id = UUID()
     /// Имя пользователя
-    let firstNameText: NSAttributedString
+    let firstName: NSAttributedString
     /// Фамилия пользователя
-    let lastNameText: NSAttributedString
+    let lastName: NSAttributedString
     /// Количество звезд рейтинга
-    let ratingCount: Int
-    /// Звезды рейтинга
-    var ratingImage: UIImage {
-        ratingRender.ratingImage(ratingCount)
-    }
-    /// Польное имя пользователя
+    let rating: Int
+    /// Полное имя пользователя
     var fullName: String {
-        "\(firstNameText) \(lastNameText)"
+        "\(firstName) \(lastName)"
     }
     /// Текст отзыва.
     let reviewText: NSAttributedString
@@ -45,12 +40,12 @@ extension ReviewCellConfig: TableCellConfig {
     func update(cell: UITableViewCell) {
         guard let cell = cell as? ReviewCell else { return }
         let fullName = NSMutableAttributedString()
-        fullName.append(firstNameText)
+        fullName.append(firstName)
         fullName.append(NSAttributedString(string: " "))
-        fullName.append(lastNameText)
+        fullName.append(lastName)
 
         cell.nameTextLabel.attributedText = fullName
-        cell.ratingImageView.image = ratingImage
+        cell.ratingImageView.image = RatingRenderer().ratingImage(rating)
         cell.reviewTextLabel.attributedText = reviewText
         cell.reviewTextLabel.numberOfLines = maxLines
         cell.createdLabel.attributedText = created

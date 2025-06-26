@@ -85,9 +85,9 @@ private extension ReviewsViewModel {
         let reviewText = review.text.attributed(font: .text)
         let created = review.created.attributed(font: .created, color: .created)
         let item = ReviewItem(
-            firstNameText: firstName,
-            lastNameText: lastName,
-            ratingCount: rating,
+            firstName: firstName,
+            lastName: lastName,
+            rating: rating,
             reviewText: reviewText,
             created: created,
             onTapShowMore: showMoreReview
