@@ -102,6 +102,11 @@ final class ReviewCell: UITableViewCell {
         showMoreButton.frame = layout.showMoreButtonFrame
     }
 
+    @objc
+    private func showMoreTapped() {
+        guard let config else { return }
+        config.onTapShowMore(config.id)
+    }
 }
 
 // MARK: - Private
@@ -150,6 +155,7 @@ private extension ReviewCell {
         contentView.addSubview(showMoreButton)
         showMoreButton.contentVerticalAlignment = .fill
         showMoreButton.setAttributedTitle(Config.showMoreText, for: .normal)
+        showMoreButton.addTarget(self, action: #selector(showMoreTapped), for: .touchUpInside)
     }
 
 }
