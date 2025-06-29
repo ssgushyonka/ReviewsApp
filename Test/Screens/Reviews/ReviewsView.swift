@@ -3,6 +3,7 @@ import UIKit
 final class ReviewsView: UIView {
 
     let tableView = UITableView()
+    let refreshControl = UIRefreshControl()
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
@@ -17,7 +18,6 @@ final class ReviewsView: UIView {
         super.layoutSubviews()
         tableView.frame = bounds.inset(by: safeAreaInsets)
     }
-
 }
 
 // MARK: - Private
@@ -31,6 +31,7 @@ private extension ReviewsView {
 
     func setupTableView() {
         addSubview(tableView)
+        tableView.refreshControl = refreshControl
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 44
         tableView.separatorStyle = .none

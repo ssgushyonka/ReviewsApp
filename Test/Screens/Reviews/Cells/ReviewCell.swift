@@ -89,15 +89,21 @@ final class ReviewCell: UITableViewCell {
     fileprivate let showMoreButton = UIButton()
     fileprivate var photoImageViews: [UIImageView] = []
 
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setupCell()
     }
 
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        avatarImageView.image = nil
+        photoImageViews.forEach { $0.image = nil }
+    }
+    
     override func layoutSubviews() {
         super.layoutSubviews()
         guard let layout = config?.layout else { return }

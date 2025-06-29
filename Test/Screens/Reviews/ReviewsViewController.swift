@@ -22,9 +22,20 @@ final class ReviewsViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupViewModel()
+        setupRefreshControl()
         viewModel.getReviews()
     }
 
+    private func setupRefreshControl() {
+        reviewsView.refreshControl.addTarget(self, action: #selector(pullToRefresh), for: .valueChanged)
+    }
+    
+    @objc
+    private func pullToRefresh() {
+        viewModel.refreshReviews { [weak self] in
+            self?.reviewsView.refreshControl.endRefreshing()
+        }
+    }
 }
 
 // MARK: - Private

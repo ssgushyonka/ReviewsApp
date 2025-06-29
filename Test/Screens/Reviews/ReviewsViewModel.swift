@@ -159,5 +159,17 @@ extension ReviewsViewModel: UITableViewDelegate {
         let remainingDistance = contentHeight - viewHeight - targetOffsetY
         return remainingDistance <= triggerDistance
     }
+}
 
+extension ReviewsViewModel {
+    func refreshReviews(completion: (() -> Void)? = nil) {
+        state = State()
+        let lastOnChange = onStateChange
+        onStateChange = { [weak self] newState in
+            lastOnChange?(newState)
+            completion?()
+            self?.onStateChange = lastOnChange
+        }
+        getReviews()
+    }
 }
