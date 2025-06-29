@@ -4,6 +4,7 @@ final class ReviewsViewController: UIViewController {
 
     private lazy var reviewsView = makeReviewsView()
     private let viewModel: ReviewsViewModel
+    private let loadingIndicator = CustomLoadingIndicator(squareLength: 100)
 
     init(viewModel: ReviewsViewModel) {
         self.viewModel = viewModel
@@ -22,6 +23,7 @@ final class ReviewsViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupViewModel()
+        setupLoadingIndicator()
         setupRefreshControl()
         viewModel.getReviews()
     }
@@ -29,7 +31,13 @@ final class ReviewsViewController: UIViewController {
     private func setupRefreshControl() {
         reviewsView.refreshControl.addTarget(self, action: #selector(pullToRefresh), for: .valueChanged)
     }
-    
+
+    private func setupLoadingIndicator() {
+        loadingIndicator.startAnimation(delay: 0.01, replicates: 16)
+        loadingIndicator.isHidden = true
+        view.addSubview(loadingIndicator)
+    }
+
     @objc
     private func pullToRefresh() {
         viewModel.refreshReviews { [weak self] in
@@ -49,10 +57,22 @@ private extension ReviewsViewController {
         return reviewsView
     }
 
-    func setupViewModel() {
-        viewModel.onStateChange = { [weak reviewsView] _ in
-            reviewsView?.tableView.reloadData()
+    private func setupViewModel() {
+        viewModel.onStateChange = { [weak self] state in
+            DispatchQueue.main.async {
+                if let refreshControl = self?.reviewsView.tableView.refreshControl,
+                   refreshControl.isRefreshing {
+                    return
+                }
+                if state.isLoading && state.items.isEmpty {
+                    self?.loadingIndicator.isHidden = false
+                    self?.loadingIndicator.startAnimation(delay: 0.04, replicates: 16)
+                } else {
+                    self?.loadingIndicator.stopAnimation()
+                    self?.loadingIndicator.isHidden = true
+                }
+                self?.reviewsView.tableView.reloadData()
+            }
         }
     }
-
 }

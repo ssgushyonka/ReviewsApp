@@ -33,11 +33,29 @@ extension ReviewsViewModel {
 
     /// Метод получения отзывов.
     func getReviews() {
-        guard state.shouldLoad else { return }
+        guard state.shouldLoad, !state.isLoading else { return }
         state.shouldLoad = false
-        reviewsProvider.getReviews(offset: state.offset, completion: gotReviews)
+        state.isLoading = true
+        onStateChange?(state)
+        reviewsProvider.getReviews(offset: state.offset) { [weak self] result in
+            guard let self = self else { return }
+            self.state.isLoading = false
+            self.gotReviews(result)
+        }
     }
 
+    func refreshReviews(completion: (() -> Void)? = nil) {
+        state.items = []
+        state.offset = 0
+        state.shouldLoad = true
+        onStateChange?(state)
+        
+        reviewsProvider.getReviews(offset: state.offset) { [weak self] result in
+            guard let self = self else { return }
+            self.gotReviews(result)
+            completion?()
+        }
+    }
 }
 
 // MARK: - Private
@@ -158,18 +176,5 @@ extension ReviewsViewModel: UITableViewDelegate {
         let triggerDistance = viewHeight * screensToLoadNextPage
         let remainingDistance = contentHeight - viewHeight - targetOffsetY
         return remainingDistance <= triggerDistance
-    }
-}
-
-extension ReviewsViewModel {
-    func refreshReviews(completion: (() -> Void)? = nil) {
-        state = State()
-        let lastOnChange = onStateChange
-        onStateChange = { [weak self] newState in
-            lastOnChange?(newState)
-            completion?()
-            self?.onStateChange = lastOnChange
-        }
-        getReviews()
     }
 }

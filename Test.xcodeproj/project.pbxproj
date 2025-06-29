@@ -31,6 +31,7 @@
 		32A8FB342E108486005EE877 /* ImageCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32A8FB332E10847E005EE877 /* ImageCache.swift */; };
 		32A8FB362E1084C0005EE877 /* ImageView+Async.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32A8FB352E1084B5005EE877 /* ImageView+Async.swift */; };
 		32A8FB382E109D24005EE877 /* UIImage+Ext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32A8FB372E109D11005EE877 /* UIImage+Ext.swift */; };
+		32A8FB482E11B9F1005EE877 /* CustomLoadingIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32A8FB462E11B9F1005EE877 /* CustomLoadingIndicator.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -59,6 +60,7 @@
 		32A8FB332E10847E005EE877 /* ImageCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCache.swift; sourceTree = "<group>"; };
 		32A8FB352E1084B5005EE877 /* ImageView+Async.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ImageView+Async.swift"; sourceTree = "<group>"; };
 		32A8FB372E109D11005EE877 /* UIImage+Ext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIImage+Ext.swift"; sourceTree = "<group>"; };
+		32A8FB462E11B9F1005EE877 /* CustomLoadingIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomLoadingIndicator.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -161,6 +163,7 @@
 		21B82E372D47B1090085DAA2 /* Reviews */ = {
 			isa = PBXGroup;
 			children = (
+				32A8FB472E11B9F1005EE877 /* UIElements */,
 				21ED1F642D69D0340012D6F6 /* ReviewsScreenFactory.swift */,
 				21B82E292D47B0640085DAA2 /* ReviewsViewController.swift */,
 				2166A0F32D4A5B25009AAA76 /* ReviewsView.swift */,
@@ -205,6 +208,14 @@
 				32A8FB332E10847E005EE877 /* ImageCache.swift */,
 			);
 			path = Services;
+			sourceTree = "<group>";
+		};
+		32A8FB472E11B9F1005EE877 /* UIElements */ = {
+			isa = PBXGroup;
+			children = (
+				32A8FB462E11B9F1005EE877 /* CustomLoadingIndicator.swift */,
+			);
+			path = UIElements;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -280,6 +291,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				32A8FB482E11B9F1005EE877 /* CustomLoadingIndicator.swift in Sources */,
 				21B82E392D47B1320085DAA2 /* Review.swift in Sources */,
 				21B8416D2D47C0E20085DAA2 /* ReviewsViewModelState.swift in Sources */,
 				21B82E2E2D47B0640085DAA2 /* ReviewCell.swift in Sources */,
