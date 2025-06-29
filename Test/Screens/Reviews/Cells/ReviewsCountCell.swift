@@ -8,7 +8,7 @@ struct ReviewsCountCellConfig: TableCellConfig {
         guard let cell = cell as? ReviewsCountCell else { return }
         cell.countLabel.text = "\(reviewsCount) отзывов"
     }
-    
+
     func height(with size: CGSize) -> CGFloat {
         44
     }

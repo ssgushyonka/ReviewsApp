@@ -23,6 +23,10 @@ struct ReviewCellConfig {
     var maxLines = 3
     /// Время создания отзыва.
     let created: NSAttributedString
+    /// url аватара пользователя
+    let avatarURL: URL?
+    ///urls добавленных фото пользователя
+    let photoURLs: [URL]?
     /// Замыкание, вызываемое при нажатии на кнопку "Показать полностью...".
     let onTapShowMore: (UUID) -> Void
 
@@ -49,6 +53,8 @@ extension ReviewCellConfig: TableCellConfig {
         cell.reviewTextLabel.attributedText = reviewText
         cell.reviewTextLabel.numberOfLines = maxLines
         cell.createdLabel.attributedText = created
+        cell.configureAvatar(with: avatarURL)
+        cell.updatePhotos(with: photoURLs)
         cell.config = self
     }
 
@@ -81,6 +87,7 @@ final class ReviewCell: UITableViewCell {
     fileprivate let reviewTextLabel = UILabel()
     fileprivate let createdLabel = UILabel()
     fileprivate let showMoreButton = UIButton()
+    fileprivate var photoImageViews: [UIImageView] = []
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
@@ -100,6 +107,12 @@ final class ReviewCell: UITableViewCell {
         reviewTextLabel.frame = layout.reviewTextLabelFrame
         createdLabel.frame = layout.createdLabelFrame
         showMoreButton.frame = layout.showMoreButtonFrame
+        
+        guard photoImageViews.count == layout.photoFrames.count else { return }
+        
+        for (index, frame) in layout.photoFrames.enumerated() {
+            photoImageViews[index].frame = frame
+        }
     }
 
     @objc
@@ -126,7 +139,7 @@ private extension ReviewCell {
         contentView.addSubview(avatarImageView)
         avatarImageView.contentMode = .scaleAspectFill
         avatarImageView.clipsToBounds = true
-        avatarImageView.layer.cornerRadius = ReviewCellLayout.avatarCornerRadius
+        avatarImageView.layer.cornerRadius = Layout.avatarCornerRadius
         avatarImageView.image = .l5W5AIHioYc
     }
     
@@ -185,6 +198,7 @@ private final class ReviewCellLayout {
     private(set) var reviewTextLabelFrame = CGRect.zero
     private(set) var showMoreButtonFrame = CGRect.zero
     private(set) var createdLabelFrame = CGRect.zero
+    private(set) var photoFrames: [CGRect] = []
 
     // MARK: - Отступы
 
@@ -238,6 +252,25 @@ private final class ReviewCellLayout {
             height: Self.ratingSize.height
         )
         maxY = ratingFrame.maxY + ratingToTextSpacing
+        
+        photoFrames = []
+        if let photoURLs = config.photoURLs, !photoURLs.isEmpty {
+            let maxPhotosPerRow = Int((maxWidth - contentLeft - insets.right) / (Self.photoSize.width + photosSpacing))
+            let photosCount = min(photoURLs.count, maxPhotosPerRow)
+            
+            for i in 0..<photosCount {
+                let x = contentLeft + CGFloat(i) * (Self.photoSize.width + photosSpacing)
+                photoFrames.append(CGRect(
+                    x: x,
+                    y: maxY,
+                    width: Self.photoSize.width,
+                    height: Self.photoSize.height
+                ))
+            }
+            if !photoFrames.isEmpty {
+                maxY = photoFrames.last!.maxY + photosToTextSpacing
+            }
+        }
 
         if !config.reviewText.isEmpty() {
             // Высота текста с текущим ограничением по количеству строк.
@@ -269,10 +302,45 @@ private final class ReviewCellLayout {
             origin: CGPoint(x: contentLeft, y: maxY),
             size: config.created.boundingRect(width: maxWidth - contentLeft - insets.right).size
         )
-
         return createdLabelFrame.maxY + insets.bottom
     }
+}
 
+extension ReviewCell {
+
+    fileprivate func updatePhotos(with urls: [URL]?) {
+        photoImageViews.forEach { $0.removeFromSuperview() }
+        photoImageViews.removeAll()
+
+        guard let urls = urls, !urls.isEmpty else { return }
+
+        for url in urls.prefix(5) {
+            let imageView = UIImageView()
+            imageView.contentMode = .scaleAspectFill
+            imageView.clipsToBounds = true
+            imageView.layer.cornerRadius = ReviewCellLayout.photoCornerRadius
+            contentView.addSubview(imageView)
+            photoImageViews.append(imageView)
+
+            ImageCache.shared.loadImage(from: url) { [weak imageView] image in
+                DispatchQueue.main.async {
+                    imageView?.image = image ?? .photoPlaceholder(size: CGSize(width: 55, height: 66))
+                }
+            }
+        }
+    }
+
+    fileprivate func configureAvatar(with url: URL?) {
+        if let url {
+            ImageCache.shared.loadImage(from: url) { [weak self] image in
+                DispatchQueue.main.async {
+                    self?.avatarImageView.image = image ?? .l5W5AIHioYc
+                }
+            }
+        } else {
+            avatarImageView.image = .l5W5AIHioYc
+        }
+    }
 }
 
 // MARK: - Typealias
