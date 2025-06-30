@@ -320,11 +320,17 @@ extension ReviewCell {
 
         guard let urls = urls, !urls.isEmpty else { return }
 
-        for url in urls.prefix(5) {
+        for (index, url) in urls.prefix(5).enumerated() {
+
             let imageView = UIImageView()
             imageView.contentMode = .scaleAspectFill
             imageView.clipsToBounds = true
             imageView.layer.cornerRadius = ReviewCellLayout.photoCornerRadius
+            imageView.isUserInteractionEnabled = true
+            imageView.tag = index
+
+            let tapGesture = UITapGestureRecognizer(target: self, action: #selector(photoTapped(_:)))
+            imageView.addGestureRecognizer(tapGesture)
             contentView.addSubview(imageView)
             photoImageViews.append(imageView)
 
@@ -345,6 +351,21 @@ extension ReviewCell {
             }
         } else {
             avatarImageView.image = .l5W5AIHioYc
+        }
+    }
+
+    @objc private func photoTapped(_ sender: UITapGestureRecognizer) {
+        guard let index = sender.view?.tag,
+              let photoURLs = config?.photoURLs,
+              index < photoURLs.count else { return }
+        let galleryVC = PhotoPersentationViewController(photoURLs: photoURLs, initialIndex: index)
+        var responder: UIResponder? = self
+        while responder != nil {
+            if let vc = responder as? UIViewController {
+                vc.present(galleryVC, animated: true)
+                break
+            }
+            responder = responder?.next
         }
     }
 }
