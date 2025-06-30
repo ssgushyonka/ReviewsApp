@@ -5,5 +5,6 @@ struct ReviewsViewModelState {
     var limit = 20
     var offset = 0
     var shouldLoad = true
-
+    var reviewsCount: Int = 0
+    var isLoading: Bool = false
 }

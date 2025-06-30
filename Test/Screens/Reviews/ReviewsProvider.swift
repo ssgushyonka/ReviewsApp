@@ -25,19 +25,27 @@ extension ReviewsProvider {
     }
 
     func getReviews(offset: Int = 0, completion: @escaping (GetReviewsResult) -> Void) {
-        guard let url = bundle.url(forResource: "getReviews.response", withExtension: "json") else {
-            return completion(.failure(.badURL))
-        }
-
-        // Симулируем сетевой запрос - не менять
-        usleep(.random(in: 100_000...1_000_000))
-
-        do {
-            let data = try Data(contentsOf: url)
-            completion(.success(data))
-        } catch {
-            completion(.failure(.badData(error)))
+        DispatchQueue.global().async {
+            // Симулируем сетевой запрос - не менять
+            usleep(.random(in: 100_000...1_000_000))
+            
+            guard let url = self.bundle.url(forResource: "getReviews.response", withExtension: "json") else {
+                DispatchQueue.main.async {
+                    completion(.failure(.badURL))
+                }
+                return
+            }
+            
+            do {
+                let data = try Data(contentsOf: url)
+                DispatchQueue.main.async {
+                    completion(.success(data))
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    completion(.failure(.badData(error)))
+                }
+            }
         }
     }
-
 }

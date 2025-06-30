@@ -5,6 +5,7 @@ final class ReviewsViewModel: NSObject {
 
     /// Замыкание, вызываемое при изменении `state`.
     var onStateChange: ((State) -> Void)?
+    var onError: ((ReviewsError) -> Void)?
 
     private var state: State
     private let reviewsProvider: ReviewsProvider
@@ -33,11 +34,29 @@ extension ReviewsViewModel {
 
     /// Метод получения отзывов.
     func getReviews() {
-        guard state.shouldLoad else { return }
+        guard state.shouldLoad, !state.isLoading else { return }
         state.shouldLoad = false
-        reviewsProvider.getReviews(offset: state.offset, completion: gotReviews)
+        state.isLoading = true
+        onStateChange?(state)
+        reviewsProvider.getReviews(offset: state.offset) { [weak self] result in
+            guard let self = self else { return }
+            self.state.isLoading = false
+            self.gotReviews(result)
+        }
     }
 
+    func refreshReviews(completion: (() -> Void)? = nil) {
+        state.items = []
+        state.offset = 0
+        state.shouldLoad = true
+        onStateChange?(state)
+        
+        reviewsProvider.getReviews(offset: state.offset) { [weak self] result in
+            guard let self = self else { return }
+            self.gotReviews(result)
+            completion?()
+        }
+    }
 }
 
 // MARK: - Private
@@ -52,8 +71,13 @@ private extension ReviewsViewModel {
             state.items += reviews.items.map(makeReviewItem)
             state.offset += state.limit
             state.shouldLoad = state.offset < reviews.count
+            state.reviewsCount = reviews.count
+        } catch let decodingError as DecodingError {
+            state.shouldLoad = true
+            onError?(.decodingFailed(underlyingError: decodingError))
         } catch {
             state.shouldLoad = true
+            onError?(.loadingFailed(underlyingError: error))
         }
         onStateChange?(state)
     }
@@ -79,12 +103,22 @@ private extension ReviewsViewModel {
     typealias ReviewItem = ReviewCellConfig
 
     func makeReviewItem(_ review: Review) -> ReviewItem {
+        let firstName = review.firstName.attributed(font: .username)
+        let lastName = review.lastName.attributed(font: .username)
+        let rating = review.rating
         let reviewText = review.text.attributed(font: .text)
         let created = review.created.attributed(font: .created, color: .created)
         let item = ReviewItem(
+            firstName: firstName,
+            lastName: lastName,
+            rating: rating,
             reviewText: reviewText,
             created: created,
-            onTapShowMore: showMoreReview
+            avatarURL: review.avatarURL,
+            photoURLs: review.photoURLs,
+            onTapShowMore: { [weak self] id in
+                self?.showMoreReview(with: id)
+            }
         )
         return item
     }
@@ -96,16 +130,23 @@ private extension ReviewsViewModel {
 extension ReviewsViewModel: UITableViewDataSource {
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        state.items.count
+        state.items.count + 1
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let config = state.items[indexPath.row]
-        let cell = tableView.dequeueReusableCell(withIdentifier: config.reuseId, for: indexPath)
-        config.update(cell: cell)
-        return cell
+        if indexPath.row < state.items.count {
+            let config = state.items[indexPath.row]
+            let cell = tableView.dequeueReusableCell(withIdentifier: config.reuseId, for: indexPath)
+            config.update(cell: cell)
+            return cell
+        } else {
+            let total = state.reviewsCount
+            let config = ReviewsCountCellConfig(reviewsCount: total)
+            let cell = tableView.dequeueReusableCell(withIdentifier: config.reuseId, for: indexPath)
+            config.update(cell: cell)
+            return cell
+        }
     }
-
 }
 
 // MARK: - UITableViewDelegate
@@ -113,9 +154,12 @@ extension ReviewsViewModel: UITableViewDataSource {
 extension ReviewsViewModel: UITableViewDelegate {
 
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        state.items[indexPath.row].height(with: tableView.bounds.size)
+        if indexPath.row < state.items.count {
+            return state.items[indexPath.row].height(with: tableView.bounds.size)
+        } else {
+            return UITableView.automaticDimension
+        }
     }
-
     /// Метод дозапрашивает отзывы, если до конца списка отзывов осталось два с половиной экрана по высоте.
     func scrollViewWillEndDragging(
         _ scrollView: UIScrollView,
@@ -138,5 +182,4 @@ extension ReviewsViewModel: UITableViewDelegate {
         let remainingDistance = contentHeight - viewHeight - targetOffsetY
         return remainingDistance <= triggerDistance
     }
-
 }
