@@ -5,6 +5,7 @@ final class ReviewsViewModel: NSObject {
 
     /// Замыкание, вызываемое при изменении `state`.
     var onStateChange: ((State) -> Void)?
+    var onError: ((ReviewsError) -> Void)?
 
     private var state: State
     private let reviewsProvider: ReviewsProvider
@@ -71,8 +72,12 @@ private extension ReviewsViewModel {
             state.offset += state.limit
             state.shouldLoad = state.offset < reviews.count
             state.reviewsCount = reviews.count
+        } catch let decodingError as DecodingError {
+            state.shouldLoad = true
+            onError?(.decodingFailed(underlyingError: decodingError))
         } catch {
             state.shouldLoad = true
+            onError?(.loadingFailed(underlyingError: error))
         }
         onStateChange?(state)
     }

@@ -74,5 +74,20 @@ private extension ReviewsViewController {
                 self?.reviewsView.tableView.reloadData()
             }
         }
+        viewModel.onError = { [weak self] error in
+            DispatchQueue.main.async {
+                self?.showErrorAlert(error)
+            }
+        }
+    }
+    
+    private func showErrorAlert(_ error: ReviewsError) {
+        let alert = UIAlertController(
+            title: "Ошибка",
+            message: error.localizedDescription,
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "ОК", style: .default))
+        present(alert, animated: true)
     }
 }
